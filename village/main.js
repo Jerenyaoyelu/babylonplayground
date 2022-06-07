@@ -8,7 +8,7 @@ const engine = new BABYLON.Engine(canvas, true, {
 const buidGround = (scene) => {
   const ground = BABYLON.MeshBuilder.CreateGround(
     "ground",
-    { width: 10, height: 10 },
+    { width: 20, height: 20 },
     scene
   );
 
@@ -17,42 +17,50 @@ const buidGround = (scene) => {
   ground.material = groundMat;
 };
 
-const buildWalls = (name, scene) => {
+const buildWalls = (name, scene, width) => {
   // 墙面门窗
   const faceUV = [];
-  faceUV[0] = new BABYLON.Vector4(0.5, 0.0, 0.75, 1.0); //back face
-  faceUV[1] = new BABYLON.Vector4(0.0, 0.0, 0.25, 1.0); //front face
-  faceUV[2] = new BABYLON.Vector4(0.25, 0, 0.5, 1.0); //right side
-  faceUV[3] = new BABYLON.Vector4(0.75, 0, 1.0, 1.0); //left side
+  if (width == 2) {
+    faceUV[0] = new BABYLON.Vector4(0.6, 0.0, 1.0, 1.0); //rear face
+    faceUV[1] = new BABYLON.Vector4(0.0, 0.0, 0.4, 1.0); //front face
+    faceUV[2] = new BABYLON.Vector4(0.4, 0, 0.6, 1.0); //right side
+    faceUV[3] = new BABYLON.Vector4(0.4, 0, 0.6, 1.0); //left side
+  } else {
+    faceUV[0] = new BABYLON.Vector4(0.5, 0.0, 0.75, 1.0); //rear face
+    faceUV[1] = new BABYLON.Vector4(0.0, 0.0, 0.25, 1.0); //front face
+    faceUV[2] = new BABYLON.Vector4(0.25, 0, 0.5, 1.0); //right side
+    faceUV[3] = new BABYLON.Vector4(0.75, 0, 1.0, 1.0); //left side
+  }
   const box = BABYLON.MeshBuilder.CreateBox(
     name,
-    { faceUV, wrap: true },
+    { width, faceUV, wrap: true },
     scene
   );
 
-  box.position.y = 0.75;
-  box.scaling = new BABYLON.Vector3(2, 1.5, 3);
-  box.rotation.y = BABYLON.Tools.ToRadians(90);
+  box.position.y = 0.5;
 
   // 墙面纹理
   const boxMat = new BABYLON.StandardMaterial("boxMaterial");
   boxMat.diffuseTexture = new BABYLON.Texture(
-    "https://assets.babylonjs.com/environments/cubehouse.png",
+    width === 2
+      ? "https://assets.babylonjs.com/environments/semihouse.png"
+      : "https://assets.babylonjs.com/environments/cubehouse.png",
     scene
   );
   box.material = boxMat;
   return box;
 };
 
-const buildRoof = (scene) => {
+const buildRoof = (scene, width) => {
   const roof = BABYLON.MeshBuilder.CreateCylinder(
     "roof",
-    { diameter: 2.6, height: 3, tessellation: 3 },
+    { diameter: 1.3, height: 1.2, tessellation: 3 },
     scene
   );
-  roof.scaling.x = 0.8;
+  roof.scaling.x = 0.75;
+  roof.scaling.y = width;
   roof.rotation.z = Math.PI / 2;
-  roof.position.y = 2;
+  roof.position.y = 1.22;
 
   const roofMat = new BABYLON.StandardMaterial("roofMaterial");
   roofMat.diffuseTexture = new BABYLON.Texture(
@@ -63,11 +71,59 @@ const buildRoof = (scene) => {
   return roof;
 };
 
-const createBaseHouse = async (name, scene) => {
-  const box = buildWalls(name, scene);
-  const roof = buildRoof(scene);
+const createBaseHouse = (name, scene, width) => {
+  const box = buildWalls(name, scene, width);
+  const roof = buildRoof(scene, width);
 
-  return { box, roof };
+  const house = BABYLON.Mesh.MergeMeshes(
+    [box, roof],
+    true,
+    false,
+    null,
+    false,
+    true
+  );
+  return house;
+};
+
+const buidBunchOfHouses = (scene) => {
+  const detached_house = createBaseHouse("detached", scene, 1);
+  detached_house.rotation.y = -Math.PI / 16;
+  detached_house.position.x = -6.8;
+  detached_house.position.z = 2.5;
+
+  const semi_house = createBaseHouse("semi", scene, 2);
+  semi_house.rotation.y = -Math.PI / 16;
+  semi_house.position.x = -4.5;
+  semi_house.position.z = 3;
+  // copy 一堆房子
+  // 定义位置
+  const places = []; //each entry is an array [rotation, x, z]
+  places.push([1, -Math.PI / 16, -6.8, 2.5]);
+  places.push([2, -Math.PI / 16, -4.5, 3]);
+  places.push([2, -Math.PI / 16, -1.5, 4]);
+  places.push([2, -Math.PI / 3, 1.5, 6]);
+  places.push([2, (15 * Math.PI) / 16, -6.4, -1.5]);
+  places.push([1, (15 * Math.PI) / 16, -4.1, -1]);
+  places.push([2, (15 * Math.PI) / 16, -2.1, -0.5]);
+  places.push([1, (5 * Math.PI) / 4, 0, -1]);
+  places.push([1, Math.PI + Math.PI / 2.5, 0.5, -3]);
+  places.push([2, Math.PI + Math.PI / 2.1, 0.75, -5]);
+  places.push([1, Math.PI + Math.PI / 2.25, 0.75, -7]);
+  places.push([2, Math.PI / 1.9, 4.75, -1]);
+  places.push([1, Math.PI / 1.95, 4.5, -3]);
+  places.push([2, Math.PI / 1.9, 4.75, -5]);
+  places.push([1, Math.PI / 1.9, 4.75, -7]);
+  places.push([2, -Math.PI / 3, 5.25, 2]);
+  places.push([1, -Math.PI / 3, 6, 4]);
+  const houses = [];
+  for (let i = 0; i < places.length; i++) {
+    const tarHouse = places[i][0] === 2 ? semi_house : detached_house;
+    houses[i] = tarHouse.createInstance(`house${i}`);
+    houses[i].rotation.y = places[i][1];
+    houses[i].position.x = places[i][2];
+    houses[i].position.z = places[i][3];
+  }
 };
 
 const createScene = () => {
@@ -88,15 +144,7 @@ const createScene = () => {
     scene
   );
 
-  createBaseHouse("house1", scene).then(({ box, roof }) => {
-    box.position.x = -3;
-    roof.position.x = -3;
-  });
-
-  createBaseHouse("house2", scene).then(({ box, roof }) => {
-    box.position.x = 3;
-    roof.position.x = 3;
-  });
+  buidBunchOfHouses();
 
   buidGround();
 
