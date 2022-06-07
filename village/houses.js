@@ -1,22 +1,3 @@
-const canvas = document.getElementById("renderCanvas");
-const engine = new BABYLON.Engine(canvas, true, {
-  preserveDrawingBuffer: true,
-  stencil: true,
-  disableWebGL2Support: false,
-});
-
-const buidGround = (scene) => {
-  const ground = BABYLON.MeshBuilder.CreateGround(
-    "ground",
-    { width: 20, height: 20 },
-    scene
-  );
-
-  const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-  groundMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
-  ground.material = groundMat;
-};
-
 const buildWalls = (name, scene, width) => {
   // 墙面门窗
   const faceUV = [];
@@ -86,7 +67,7 @@ const createBaseHouse = (name, scene, width) => {
   return house;
 };
 
-const buidBunchOfHouses = (scene) => {
+export const buidBunchOfHouses = (scene) => {
   const detached_house = createBaseHouse("detached", scene, 1);
   detached_house.rotation.y = -Math.PI / 16;
   detached_house.position.x = -6.8;
@@ -125,49 +106,3 @@ const buidBunchOfHouses = (scene) => {
     houses[i].position.z = places[i][3];
   }
 };
-
-const createScene = () => {
-  const scene = new BABYLON.Scene(engine);
-  const camera = new BABYLON.ArcRotateCamera(
-    "camera",
-    -Math.PI / 2,
-    Math.PI / 2.5,
-    15,
-    new BABYLON.Vector3(0, 2, 0),
-    scene
-  );
-  camera.attachControl(canvas, true);
-
-  const light = new BABYLON.HemisphericLight(
-    "light",
-    new BABYLON.Vector3(0, 1, 0),
-    scene
-  );
-
-  buidBunchOfHouses();
-
-  buidGround();
-
-  const sound = new BABYLON.Sound(
-    "nature",
-    "./village/nature.wav",
-    scene,
-    null,
-    {
-      loop: true,
-      autoplay: true,
-    }
-  );
-
-  return scene;
-};
-
-const scene = createScene();
-
-engine.runRenderLoop(() => {
-  scene.render();
-});
-
-window.addEventListener("resize", function () {
-  engine.resize();
-});
